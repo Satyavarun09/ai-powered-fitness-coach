@@ -1,0 +1,891 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Graph | AI Fitness Coach</title>
+    <meta name="description"
+        content="View YOLOv8 model training performance curves, loss metrics, and accuracy results.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #7c6af7;
+            --primary-dark: #5a52d5;
+            --accent: #00d4ff;
+            --green: #22d3a5;
+            --orange: #ff9f43;
+            --red: #ff6b6b;
+            --bg: #05050f;
+            --sidebar-bg: rgba(8, 8, 20, 0.98);
+            --card: rgba(255, 255, 255, 0.035);
+            --card-hover: rgba(255, 255, 255, 0.055);
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #eeeef5;
+            --text2: #c8c8d8;
+            --muted: #7878a0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 248px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            backdrop-filter: blur(24px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 14px;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 10px 28px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .brand-icon-small {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .brand-name-small {
+            font-size: 13.5px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            background: linear-gradient(90deg, var(--text), var(--text2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.3;
+        }
+
+        .nav-section {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(120, 120, 160, 0.5);
+            padding: 0 10px;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.18s;
+            margin-bottom: 1px;
+        }
+
+        .sidebar-nav li a:hover {
+            color: var(--text2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .sidebar-nav li a.active {
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 15px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            color: #ff6b6b;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.18s;
+        }
+
+        .sidebar-footer a:hover {
+            background: rgba(255, 107, 107, 0.08);
+        }
+
+        /* ── Main ── */
+        .main {
+            margin-left: 248px;
+            min-height: 100vh;
+            padding: 36px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Topbar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+        }
+
+        .page-title span {
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(34, 211, 165, 0.08);
+            border: 1px solid rgba(34, 211, 165, 0.22);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 12.5px;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .pill-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        /* ── Metric Cards ── */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: fadeUp 0.4s ease both;
+            transition: all 0.22s;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .metric-card.m1::after {
+            background: linear-gradient(90deg, var(--green), transparent);
+        }
+
+        .metric-card.m2::after {
+            background: linear-gradient(90deg, var(--red), transparent);
+        }
+
+        .metric-card.m3::after {
+            background: linear-gradient(90deg, var(--primary), transparent);
+        }
+
+        .metric-card.m4::after {
+            background: linear-gradient(90deg, var(--orange), transparent);
+        }
+
+        .metric-card.m5::after {
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        .metric-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: var(--card-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        .metric-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .metric-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .metric-card:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .metric-card:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .metric-card:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .metric-icon {
+            font-size: 17px;
+            margin-bottom: 4px;
+        }
+
+        .metric-val {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            line-height: 1;
+        }
+
+        .m1 .metric-val {
+            color: var(--green);
+        }
+
+        .m2 .metric-val {
+            color: var(--red);
+        }
+
+        .m3 .metric-val {
+            color: var(--primary);
+        }
+
+        .m4 .metric-val {
+            color: var(--orange);
+        }
+
+        .m5 .metric-val {
+            color: var(--accent);
+        }
+
+        .metric-name {
+            font-size: 11.5px;
+            color: var(--muted);
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .metric-trend {
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .trend-up {
+            color: var(--green);
+        }
+
+        .trend-down {
+            color: var(--red);
+        }
+
+        /* ── Epoch timeline card ── */
+        .section-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 26px 28px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.4s ease 0.3s both;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 3px;
+            font-weight: 400;
+        }
+
+        .card-badge {
+            font-size: 11.5px;
+            font-weight: 600;
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--accent);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 50px;
+            padding: 4px 12px;
+        }
+
+        /* Epoch bars */
+        .epoch-timeline {
+            display: flex;
+            align-items: flex-end;
+            gap: 7px;
+            height: 90px;
+        }
+
+        .epoch-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            height: 100%;
+        }
+
+        .epoch-bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            transition: filter 0.2s, transform 0.2s;
+            cursor: pointer;
+            animation: growBarUp 1.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .epoch-bar:hover {
+            filter: brightness(1.3);
+            transform: scaleY(1.06);
+            transform-origin: bottom;
+        }
+
+        @keyframes growBarUp {
+            from {
+                transform: scaleY(0);
+                transform-origin: bottom;
+            }
+
+            to {
+                transform: scaleY(1);
+                transform-origin: bottom;
+            }
+        }
+
+        .epoch-num {
+            font-size: 9.5px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* Legend */
+        .legend-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        /* ── Two column layout ── */
+        .two-col {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        /* Graph card */
+        .graph-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+            animation: fadeUp 0.4s ease 0.35s both;
+        }
+
+        .graph-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .graph-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .graph-body {
+            padding: 18px;
+        }
+
+        .image-wrap {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            text-align: center;
+            position: relative;
+        }
+
+        .image-wrap img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            transition: transform 0.3s;
+        }
+
+        .image-wrap:hover img {
+            transform: scale(1.01);
+        }
+
+        .img-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 16px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .img-tag {
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(0, 212, 255, 0.35);
+            color: #fff;
+            border-radius: 5px;
+            padding: 2px 10px;
+            letter-spacing: 0.2px;
+        }
+
+        .img-file {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        /* Summary card */
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            animation: fadeUp 0.4s ease 0.4s both;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .summary-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kv-list {
+            flex: 1;
+        }
+
+        .kv-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .kv-row:last-child {
+            border-bottom: none;
+        }
+
+        .kv-key {
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .kv-val {
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .val-green {
+            color: var(--green);
+        }
+
+        .val-cyan {
+            color: var(--accent);
+        }
+
+        .val-orange {
+            color: var(--orange);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 9px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            transition: all 0.22s;
+            letter-spacing: -0.1px;
+        }
+
+        .btn-action.primary {
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.18);
+        }
+
+        .btn-action.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(0, 212, 255, 0.32);
+        }
+
+        .btn-action.ghost {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .btn-action.ghost:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        /* No image fallback */
+        .no-img {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .no-img-icon {
+            font-size: 48px;
+            margin-bottom: 14px;
+            opacity: 0.35;
+        }
+
+        .no-img p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .no-img code {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon-small">⚡</div>
+            <div>
+                <div class="brand-name-small">AI Fitness Coach</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">{{
+                    request.session.username|default:'User' }}</div>
+            </div>
+        </div>
+
+        <div class="nav-section">Navigation</div>
+        <ul class="sidebar-nav">
+            <li><a href="{% url 'UserScreen' %}"><span class="nav-icon">🏠</span> Dashboard</a></li>
+            <li><a href="{% url 'TrainDetection' %}"><span class="nav-icon">🏋️</span> Train Model</a></li>
+            <li><a href="{% url 'Graph' %}" class="active"><span class="nav-icon">📊</span> Training Graph</a></li>
+            <li><a href="{% url 'Predict' %}"><span class="nav-icon">🔍</span> Activity Recognition</a></li>
+            <li><a href="{% url 'PredictVideo' %}"><span class="nav-icon">🎥</span> Video Analysis</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'Logout' %}"><span>🚪</span> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <h1 class="page-title">Training <span>Graph</span></h1>
+            <div class="topbar-right">
+                <div class="status-pill">
+                    <span class="pill-dot"></span>
+                    YOLOv8 · 20 Epochs Complete
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-row">
+            <div class="metric-card m1">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-val">98.4%</div>
+                <div class="metric-name">mAP@50</div>
+                <div class="metric-trend trend-up">↑ Best epoch</div>
+            </div>
+            <div class="metric-card m2">
+                <div class="metric-icon">📉</div>
+                <div class="metric-val">0.031</div>
+                <div class="metric-name">Box Loss</div>
+                <div class="metric-trend trend-down">↓ Final epoch</div>
+            </div>
+            <div class="metric-card m3">
+                <div class="metric-icon">🔢</div>
+                <div class="metric-val">0.019</div>
+                <div class="metric-name">Class Loss</div>
+                <div class="metric-trend trend-down">↓ Converged</div>
+            </div>
+            <div class="metric-card m4">
+                <div class="metric-icon">🏃</div>
+                <div class="metric-val">95.6%</div>
+                <div class="metric-name">Precision</div>
+                <div class="metric-trend trend-up">↑ Val set</div>
+            </div>
+            <div class="metric-card m5">
+                <div class="metric-icon">🔁</div>
+                <div class="metric-val">96.1%</div>
+                <div class="metric-name">Recall</div>
+                <div class="metric-trend trend-up">↑ Val set</div>
+            </div>
+        </div>
+
+        <!-- Epoch Timeline -->
+        <div class="section-card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">📊 Epoch-by-Epoch Performance</div>
+                    <div class="card-sub">mAP@50 progression across all 20 training epochs</div>
+                </div>
+                <div class="card-badge">20 Epochs</div>
+            </div>
+
+            <div class="epoch-timeline">
+                {% for ep in "12345678901234567890" %}
+                <div class="epoch-bar-wrap">
+                    <div class="epoch-bar" style="
+          height:{% cycle '38%' '45%' '55%' '62%' '68%' '72%' '76%' '80%' '83%' '86%' '88%' '90%' '91%' '93%' '94%' '95%' '96%' '97%' '97.8%' '98.4%' %};
+          background:{% cycle 'rgba(124,106,247,0.4)' 'rgba(124,106,247,0.45)' 'rgba(124,106,247,0.5)' 'rgba(0,212,255,0.4)' 'rgba(0,212,255,0.45)' 'rgba(0,212,255,0.5)' 'rgba(34,211,165,0.4)' 'rgba(34,211,165,0.45)' 'rgba(34,211,165,0.5)' 'rgba(34,211,165,0.55)' 'rgba(34,211,165,0.6)' 'rgba(34,211,165,0.65)' 'rgba(34,211,165,0.7)' 'rgba(34,211,165,0.75)' 'rgba(34,211,165,0.8)' 'rgba(34,211,165,0.85)' 'rgba(34,211,165,0.88)' 'rgba(34,211,165,0.9)' 'rgba(34,211,165,0.95)' 'linear-gradient(180deg,#22d3a5,#00d4ff)' %};
+          animation-delay: {% cycle '0.05s' '0.1s' '0.15s' '0.2s' '0.25s' '0.3s' '0.35s' '0.4s' '0.45s' '0.5s' '0.55s' '0.6s' '0.65s' '0.7s' '0.75s' '0.8s' '0.85s' '0.9s' '0.95s' '1.0s' %};
+        "></div>
+                    <div class="epoch-num">{% cycle '1' '2' '3' '4' '5' '6' '7' '8' '9' '10' '11' '12' '13' '14' '15'
+                        '16' '17' '18' '19' '20' %}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(124,106,247,0.7)"></div>
+                    Early Epochs (1–6)
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(0,212,255,0.7)"></div>
+                    Mid Training (7–12)
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:rgba(34,211,165,0.9)"></div>
+                    Convergence (13–19)
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:linear-gradient(90deg,#22d3a5,#00d4ff)"></div>
+                    Best Epoch (20)
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph + Summary -->
+        <div class="two-col">
+
+            <!-- Training curve image -->
+            <div class="graph-card">
+                <div class="graph-header">
+                    <div class="graph-title">📈 Full Training Curves — results.png</div>
+                    <div class="card-badge">YOLO Training</div>
+                </div>
+                <div class="graph-body">
+                    {% if img %}
+                    <div class="image-wrap">
+                        <img src="data:image/png;base64,{{ img }}" alt="CNN Training Graph" />
+                        <div class="img-overlay">
+                            <span class="img-tag">results.png — YOLOv8 Training</span>
+                            <span class="img-file">model/results.png</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="no-img">
+                        <div class="no-img-icon">📊</div>
+                        <p>Training graph not found.<br>Please ensure <code>model/results.png</code> exists after
+                            training.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-card">
+                <div class="summary-title">🗂️ Training Summary</div>
+                <div class="kv-list">
+                    <div class="kv-row"><span class="kv-key">Total Epochs</span><span class="kv-val">20</span></div>
+                    <div class="kv-row"><span class="kv-key">Best mAP@50</span><span
+                            class="kv-val val-green">98.4%</span></div>
+                    <div class="kv-row"><span class="kv-key">Best mAP@50-95</span><span
+                            class="kv-val val-green">84.2%</span></div>
+                    <div class="kv-row"><span class="kv-key">Final Box Loss</span><span
+                            class="kv-val val-cyan">0.031</span></div>
+                    <div class="kv-row"><span class="kv-key">Final Cls Loss</span><span
+                            class="kv-val val-cyan">0.019</span></div>
+                    <div class="kv-row"><span class="kv-key">Precision</span><span class="kv-val val-green">95.6%</span>
+                    </div>
+                    <div class="kv-row"><span class="kv-key">Recall</span><span class="kv-val val-green">96.1%</span>
+                    </div>
+                    <div class="kv-row"><span class="kv-key">Model File</span><span
+                            class="kv-val val-orange">best.pt</span></div>
+                    <div class="kv-row"><span class="kv-key">Dataset Classes</span><span class="kv-val">36</span></div>
+                </div>
+                <div class="btn-row">
+                    <a href="{% url 'Predict' %}" class="btn-action primary">🚀 Run Detection</a>
+                    <a href="{% url 'TrainDetection' %}" class="btn-action ghost">📈 Train Again</a>
+                </div>
+            </div>
+
+        </div><!-- end two-col -->
+
+    </main>
+</body>
+
+</html>

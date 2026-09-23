@@ -1,0 +1,519 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | AI Fitness Coach</title>
+    <meta name="description" content="Create your AI Fitness Coach account.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <script>
+        function validate(formObj) {
+            if (formObj.t1.value.trim().length === 0) { showError("Please enter a username."); formObj.t1.focus(); return false; }
+            if (formObj.t2.value.trim().length < 6) { showError("Password must be at least 6 characters."); formObj.t2.focus(); return false; }
+            if (formObj.t2.value !== formObj.t3.value) { showError("Passwords do not match."); formObj.t3.focus(); return false; }
+            const btn = document.getElementById('submit-btn');
+            btn.textContent = 'Creating account…';
+            btn.disabled = true;
+            return true;
+        }
+        function showError(msg) {
+            const el = document.getElementById('inline-error');
+            if (el) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+        }
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #7c6af7;
+            --primary-dark: #5a52d5;
+            --accent: #00d4ff;
+            --bg: #05050f;
+            --card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(124, 106, 247, 0.5);
+            --text: #eeeef5;
+            --muted: #7878a0;
+            --error: #ff6b6b;
+            --success: #22d3a5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            position: relative;
+            background: linear-gradient(150deg, rgba(124, 106, 247, 0.18) 0%, rgba(0, 212, 255, 0.06) 100%);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -150px;
+            right: -150px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(124, 106, 247, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .brand-logo {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            margin-bottom: 44px;
+        }
+
+        .brand-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+            box-shadow: 0 12px 40px rgba(124, 106, 247, 0.4);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, var(--text), rgba(238, 238, 245, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-tagline {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .benefit-list {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 340px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .bi-icon {
+            font-size: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .bi-text strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .bi-text span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 60px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 28px;
+            left: 32px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+            background: var(--card);
+        }
+
+        .register-form-wrap {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .form-header {
+            margin-bottom: 28px;
+        }
+
+        .form-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .server-msg {
+            padding: 11px 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .server-msg.error {
+            background: rgba(255, 107, 107, 0.08);
+            border: 1px solid rgba(255, 107, 107, 0.25);
+            color: var(--error);
+        }
+
+        .server-msg.success {
+            background: rgba(34, 211, 165, 0.08);
+            border: 1px solid rgba(34, 211, 165, 0.25);
+            color: var(--success);
+        }
+
+        #inline-error {
+            display: none;
+            padding: 11px 14px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            background: rgba(255, 107, 107, 0.08);
+            border: 1px solid rgba(255, 107, 107, 0.25);
+            color: var(--error);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 7px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 40px 12px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            transition: all 0.25s;
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: rgba(120, 120, 160, 0.6);
+        }
+
+        .form-input:focus {
+            border-color: var(--border-focus);
+            background: rgba(124, 106, 247, 0.06);
+            box-shadow: 0 0 0 3px rgba(124, 106, 247, 0.12);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0.45;
+        }
+
+        .input-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            background: none;
+            border: none;
+        }
+
+        .input-toggle:hover {
+            opacity: 0.85;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: all 0.25s;
+            box-shadow: 0 6px 24px rgba(124, 106, 247, 0.35);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(124, 106, 247, 0.5);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-footer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 20px;
+        }
+
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 860px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+
+            .left-panel {
+                display: none;
+            }
+
+            .right-panel {
+                padding: 40px 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+        <div class="brand-logo">
+            <div class="brand-icon">⚡</div>
+            <div class="brand-name">AI Fitness Coach</div>
+            <div class="brand-tagline">Powered by YOLOv8 Deep Learning</div>
+        </div>
+        <div class="benefit-list">
+            <div class="benefit-item">
+                <div class="bi-icon">🏋️</div>
+                <div class="bi-text">
+                    <strong>36+ Exercise Classes</strong>
+                    <span>Get AI recognition for a wide range of fitness activities.</span>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="bi-icon">📊</div>
+                <div class="bi-text">
+                    <strong>Personalized Plans</strong>
+                    <span>Receive custom guidance based on detected activities.</span>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="bi-icon">🔒</div>
+                <div class="bi-text">
+                    <strong>Secure &amp; Private</strong>
+                    <span>Your data is stored securely and only accessible to you.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+        <a href="{% url 'index' %}" class="back-link">← Back to Home</a>
+
+        <div class="register-form-wrap">
+            <div class="form-header">
+                <h1>Create account ✨</h1>
+                <p>Join AI Fitness Coach and start your personalized fitness journey today.</p>
+            </div>
+
+            {% if data %}
+            {% if "successful" in data %}
+            <div class="server-msg success">✅ {{ data }}</div>
+            {% else %}
+            <div class="server-msg error">⚠ {{ data }}</div>
+            {% endif %}
+            {% endif %}
+
+            <div id="inline-error"></div>
+
+            <form name="f1" method="post" action="{% url 'Register' %}" onsubmit="return validate(this)">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="fullname-input">Full Name</label>
+                        <div class="input-wrap">
+                            <input class="form-input" type="text" id="fullname-input" name="t5"
+                                placeholder="John Doe" />
+                            <span class="input-icon">👤</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email-input">Email</label>
+                        <div class="input-wrap">
+                            <input class="form-input" type="email" id="email-input" name="t4"
+                                placeholder="you@email.com" />
+                            <span class="input-icon">✉️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="username-input">Username *</label>
+                    <div class="input-wrap">
+                        <input class="form-input" type="text" id="username-input" name="t1"
+                            placeholder="Choose a username" autocomplete="username" required />
+                        <span class="input-icon">@</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password-input">Password *</label>
+                    <div class="input-wrap">
+                        <input class="form-input" type="password" id="password-input" name="t2"
+                            placeholder="Min. 6 characters" autocomplete="new-password" required />
+                        <button type="button" class="input-toggle" onclick="togglePassword('password-input')"
+                            title="Toggle password">👁</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirm-input">Confirm Password *</label>
+                    <div class="input-wrap">
+                        <input class="form-input" type="password" id="confirm-input" name="t3"
+                            placeholder="Repeat your password" autocomplete="new-password" required />
+                        <button type="button" class="input-toggle" onclick="togglePassword('confirm-input')"
+                            title="Toggle password">👁</button>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-submit">Create Account →</button>
+            </form>
+
+            <div class="form-footer">
+                Already have an account? <a href="{% url 'UserLogin' %}">Sign in</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

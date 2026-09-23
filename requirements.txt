@@ -1,0 +1,12 @@
+pip install numpy==1.26.4
+pip install pandas==2.1.3
+pip install matplotlib==3.7.1
+pip install scikit-learn==1.5.1
+pip install opencv-python==4.8.0.74
+pip install opencv-contrib-python==4.8.0.76
+pip install Django==2.1.7
+pip install ultralytics==8.1.7
+
+
+
+

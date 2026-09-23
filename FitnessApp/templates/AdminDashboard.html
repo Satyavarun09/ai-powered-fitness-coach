@@ -1,0 +1,664 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | AI Fitness Coach</title>
+    <meta name="description" content="Admin control panel for AI Fitness Coach - view and manage all user data.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #e85d04;
+            --primary-dark: #c94b03;
+            --accent: #faa307;
+            --bg: #05050f;
+            --sidebar-bg: rgba(8, 8, 20, 0.98);
+            --card: rgba(255, 255, 255, 0.035);
+            --card-hover: rgba(255, 255, 255, 0.055);
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #eeeef5;
+            --text2: #c8c8d8;
+            --muted: #7878a0;
+            --green: #22d3a5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 248px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid rgba(232, 93, 4, 0.15);
+            backdrop-filter: blur(24px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 14px;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 10px 28px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .brand-icon-small {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .brand-name-small {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+
+        .brand-role {
+            font-size: 10px;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .nav-section {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(120, 120, 160, 0.5);
+            padding: 0 10px;
+            margin-bottom: 6px;
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.18s;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-nav li a:hover {
+            color: var(--text2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .sidebar-nav li a.active {
+            color: var(--accent);
+            background: rgba(232, 93, 4, 0.1);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 15px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            color: #ff6b6b;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.18s;
+        }
+
+        .sidebar-footer a:hover {
+            background: rgba(255, 107, 107, 0.08);
+        }
+
+        /* Main */
+        .main {
+            margin-left: 248px;
+            min-height: 100vh;
+            padding: 36px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Topbar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+        }
+
+        .page-title span {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .admin-badge {
+            background: rgba(232, 93, 4, 0.1);
+            border: 1px solid rgba(232, 93, 4, 0.3);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 12.5px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Stat cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s;
+        }
+
+        .stat-card:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .stat-card.orange::before {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .stat-card.green::before {
+            background: linear-gradient(90deg, #22d3a5, #00d4ff);
+        }
+
+        .stat-card.blue::before {
+            background: linear-gradient(90deg, #7c6af7, #00d4ff);
+        }
+
+        .stat-icon {
+            font-size: 26px;
+            margin-bottom: 12px;
+        }
+
+        .stat-val {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-card.orange .stat-val {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card.green .stat-val {
+            background: linear-gradient(135deg, #22d3a5, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card.blue .stat-val {
+            background: linear-gradient(135deg, #7c6af7, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-lbl {
+            font-size: 12.5px;
+            color: var(--muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Table Section */
+        .table-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .table-header p {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .table-search {
+            position: relative;
+        }
+
+        .table-search input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px 8px 34px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--text);
+            outline: none;
+            width: 220px;
+            transition: all 0.2s;
+        }
+
+        .table-search input:focus {
+            border-color: rgba(232, 93, 4, 0.4);
+            background: rgba(232, 93, 4, 0.05);
+        }
+
+        .table-search input::placeholder {
+            color: var(--muted);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        thead th {
+            padding: 12px 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-top: 1px solid rgba(255, 255, 255, 0.045);
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody td {
+            padding: 14px 20px;
+            font-size: 13.5px;
+            vertical-align: middle;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7c6af7, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 13.5px;
+        }
+
+        .user-sub {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: rgba(34, 211, 165, 0.1);
+            border: 1px solid rgba(34, 211, 165, 0.25);
+            color: var(--green);
+        }
+
+        .badge-inactive {
+            background: rgba(255, 107, 107, 0.08);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .text-muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .mono {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .table-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 12.5px;
+            color: var(--muted);
+        }
+
+        /* Search filter */
+        .hidden-row {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon-small">🛡️</div>
+            <div>
+                <div class="brand-name-small">AI Fitness</div>
+                <div class="brand-role">Administrator</div>
+            </div>
+        </div>
+
+        <div class="nav-section">Admin Panel</div>
+        <ul class="sidebar-nav">
+            <li><a href="{% url 'AdminDashboard' %}" class="active"><span class="nav-icon">🗄️</span> User Database</a>
+            </li>
+        </ul>
+
+        <div class="nav-section" style="margin-top:12px;">System</div>
+        <ul class="sidebar-nav">
+            <li><a href="{% url 'TrainDetection' %}"><span class="nav-icon">🏋️</span> Train Detection</a></li>
+            <li><a href="{% url 'Graph' %}"><span class="nav-icon">📊</span> Training Graph</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'Logout' %}"><span>🚪</span> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1 class="page-title">User <span>Database</span></h1>
+            </div>
+            <span class="admin-badge">🛡️ Admin View</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card orange">
+                <div class="stat-icon">👥</div>
+                <div class="stat-val">{{ total_users }}</div>
+                <div class="stat-lbl">Total Registered Users</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon">✅</div>
+                <div class="stat-val">{{ active_users }}</div>
+                <div class="stat-lbl">Active Users</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-icon">📅</div>
+                <div class="stat-val">{% now "Y" %}</div>
+                <div class="stat-lbl">System Year</div>
+            </div>
+        </div>
+
+        <!-- User Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <div>
+                    <h2>Registered Users</h2>
+                    <p>All user accounts stored in the database</p>
+                </div>
+                <div class="table-search">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search users…"
+                        oninput="filterTable(this.value)" />
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                {% if users %}
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Date Joined</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="user-row" data-name="{{ user.full_name|lower }}"
+                            data-username="{{ user.username|lower }}" data-email="{{ user.email|lower }}">
+                            <td class="text-muted">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                                    <div>
+                                        <div class="user-name">{{ user.full_name|default:user.username }}</div>
+                                        <div class="user-sub">ID #{{ user.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="mono">{{ user.username }}</span></td>
+                            <td class="text-muted">{{ user.email|default:"—" }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                <span class="badge badge-active">● Active</span>
+                                {% else %}
+                                <span class="badge badge-inactive">● Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted">
+                                {% if user.date_joined %}
+                                {{ user.date_joined|date:"d M Y, H:i" }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="text-muted">
+                                {% if user.last_login %}
+                                {{ user.last_login|date:"d M Y, H:i" }}
+                                {% else %}<span style="opacity:0.5;">Never</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="table-footer">
+                    Showing <strong id="visible-count">{{ total_users }}</strong> of {{ total_users }} users
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>No users registered yet</h3>
+                    <p>Users will appear here once they register through the user portal.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function filterTable(query) {
+            const q = query.toLowerCase().trim();
+            const rows = document.querySelectorAll('.user-row');
+            let visible = 0;
+            rows.forEach(row => {
+                const name = row.dataset.name || '';
+                const username = row.dataset.username || '';
+                const email = row.dataset.email || '';
+                const match = name.includes(q) || username.includes(q) || email.includes(q);
+                row.style.display = (!q || match) ? '' : 'none';
+                if (!q || match) visible++;
+            });
+            const countEl = document.getElementById('visible-count');
+            if (countEl) countEl.textContent = visible;
+        }
+    </script>
+
+</body>
+
+</html>

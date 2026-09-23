@@ -1,0 +1,4 @@
+https://universe.roboflow.com/scu/fitness2
+
+django-admin startproject Event
+python manage.py startapp EventApp

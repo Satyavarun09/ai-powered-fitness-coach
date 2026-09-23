@@ -1,0 +1,681 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Video Analysis | AI Fitness Coach</title>
+	<meta name="description" content="Upload a video for real-time AI exercise recognition and fitness analysis.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+		rel="stylesheet">
+
+	<script>
+		function validate(formObj) {
+			if (formObj.t1.value.length == 0) {
+				const el = document.getElementById('file-error');
+				el.style.display = 'flex';
+				el.querySelector('span').textContent = 'Please select an exercise video to upload.';
+				return false;
+			}
+			document.getElementById('file-error').style.display = 'none';
+			const btn = document.getElementById('submit-btn');
+			btn.innerHTML = '<span class="btn-spinner"></span> Processing Video...';
+			btn.disabled = true;
+			return true;
+		}
+
+		function updateFileName(input) {
+			const zone = document.getElementById('drop-zone');
+			const label = document.getElementById('file-label');
+			const icon = document.getElementById('drop-icon');
+			if (input.files.length > 0) {
+				const file = input.files[0];
+				const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+				label.textContent = file.name + ' (' + sizeMB + ' MB)';
+				label.style.color = '#22d3a5';
+				icon.textContent = '✅';
+				zone.style.borderColor = 'rgba(34, 211, 165, 0.5)';
+				zone.style.background = 'rgba(34, 211, 165, 0.04)';
+				document.getElementById('file-error').style.display = 'none';
+			}
+		}
+
+		function handleDragOver(e) {
+			e.preventDefault();
+			const zone = document.getElementById('drop-zone');
+			zone.style.borderColor = 'rgba(0, 212, 255, 0.5)';
+			zone.style.background = 'rgba(0, 212, 255, 0.05)';
+		}
+
+		function handleDragLeave() {
+			const zone = document.getElementById('drop-zone');
+			zone.style.borderColor = '';
+			zone.style.background = '';
+		}
+
+		function handleDrop(e) {
+			e.preventDefault();
+			const input = document.getElementById('video-upload');
+			input.files = e.dataTransfer.files;
+			updateFileName(input);
+		}
+	</script>
+
+	<style>
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		:root {
+			--primary: #7c6af7;
+			--primary-dark: #5a52d5;
+			--accent: #00d4ff;
+			--green: #22d3a5;
+			--orange: #ff9f43;
+			--bg: #05050f;
+			--sidebar-bg: rgba(8, 8, 20, 0.98);
+			--card: rgba(255, 255, 255, 0.035);
+			--border: rgba(255, 255, 255, 0.07);
+			--text: #eeeef5;
+			--text2: #c8c8d8;
+			--muted: #7878a0;
+		}
+
+		body {
+			font-family: 'Inter', sans-serif;
+			background: var(--bg);
+			color: var(--text);
+			min-height: 100vh;
+		}
+
+		body::before {
+			content: '';
+			position: fixed;
+			inset: 0;
+			background-image:
+				linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+			background-size: 60px 60px;
+			pointer-events: none;
+			z-index: 0;
+		}
+
+		/* Sidebar */
+		.sidebar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 248px;
+			height: 100vh;
+			background: var(--sidebar-bg);
+			border-right: 1px solid var(--border);
+			backdrop-filter: blur(24px);
+			z-index: 100;
+			display: flex;
+			flex-direction: column;
+			padding: 24px 14px;
+		}
+
+		.sidebar-brand {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 4px 10px 28px;
+			border-bottom: 1px solid var(--border);
+			margin-bottom: 20px;
+		}
+
+		.brand-icon-small {
+			width: 34px;
+			height: 34px;
+			background: linear-gradient(135deg, var(--primary), var(--accent));
+			border-radius: 9px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 16px;
+			flex-shrink: 0;
+		}
+
+		.brand-name-small {
+			font-size: 13.5px;
+			font-weight: 700;
+			letter-spacing: -0.3px;
+			background: linear-gradient(90deg, var(--text), var(--text2));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+			line-height: 1.3;
+		}
+
+		.nav-section {
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: 1.5px;
+			text-transform: uppercase;
+			color: rgba(120, 120, 160, 0.5);
+			padding: 0 10px;
+			margin-bottom: 6px;
+		}
+
+		.sidebar-nav {
+			list-style: none;
+			flex: 1;
+		}
+
+		.sidebar-nav li a {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 12px;
+			border-radius: 9px;
+			color: var(--muted);
+			text-decoration: none;
+			font-size: 13.5px;
+			font-weight: 500;
+			transition: all 0.18s;
+			margin-bottom: 1px;
+		}
+
+		.sidebar-nav li a:hover {
+			color: var(--text2);
+			background: rgba(255, 255, 255, 0.04);
+		}
+
+		.sidebar-nav li a.active {
+			color: var(--accent);
+			background: rgba(0, 212, 255, 0.08);
+			font-weight: 600;
+		}
+
+		.nav-icon {
+			font-size: 15px;
+			width: 20px;
+			text-align: center;
+			flex-shrink: 0;
+		}
+
+		.sidebar-footer {
+			margin-top: auto;
+			padding-top: 16px;
+			border-top: 1px solid var(--border);
+		}
+
+		.sidebar-footer a {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 12px;
+			border-radius: 9px;
+			color: #ff6b6b;
+			text-decoration: none;
+			font-size: 13.5px;
+			font-weight: 500;
+			transition: all 0.18s;
+		}
+
+		.sidebar-footer a:hover {
+			background: rgba(255, 107, 107, 0.08);
+		}
+
+		/* Main */
+		.main {
+			margin-left: 248px;
+			min-height: 100vh;
+			padding: 36px 40px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.topbar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 32px;
+		}
+
+		.page-title {
+			font-size: 26px;
+			font-weight: 800;
+			letter-spacing: -0.8px;
+		}
+
+		.page-title span {
+			background: linear-gradient(135deg, var(--accent), var(--primary));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.topbar-badge {
+			background: rgba(0, 212, 255, 0.08);
+			border: 1px solid rgba(0, 212, 255, 0.22);
+			border-radius: 50px;
+			padding: 6px 16px;
+			font-size: 12.5px;
+			color: var(--accent);
+			font-weight: 600;
+		}
+
+		/* Content layout */
+		.content-grid {
+			display: grid;
+			grid-template-columns: 1fr 380px;
+			gap: 24px;
+			align-items: start;
+		}
+
+		.upload-card {
+			background: var(--card);
+			border: 1px solid var(--border);
+			border-radius: 20px;
+			padding: 32px;
+			animation: fadeUp 0.4s ease;
+		}
+
+		@keyframes fadeUp {
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.upload-card h2 {
+			font-size: 19px;
+			font-weight: 700;
+			margin-bottom: 8px;
+			letter-spacing: -0.4px;
+		}
+
+		.upload-card .subtitle {
+			font-size: 13.5px;
+			color: var(--muted);
+			margin-bottom: 20px;
+			line-height: 1.6;
+		}
+
+		/* Warning note */
+		.note-box {
+			background: rgba(255, 159, 67, 0.06);
+			border: 1px solid rgba(255, 159, 67, 0.2);
+			border-radius: 11px;
+			padding: 13px 16px;
+			margin-bottom: 24px;
+			font-size: 13px;
+			color: #ffa94d;
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			line-height: 1.55;
+		}
+
+		.note-box strong {
+			font-weight: 700;
+		}
+
+		/* Drop zone */
+		.drop-zone {
+			border: 2px dashed rgba(0, 212, 255, 0.22);
+			border-radius: 16px;
+			padding: 52px 24px;
+			text-align: center;
+			cursor: pointer;
+			transition: all 0.25s;
+			background: rgba(0, 212, 255, 0.02);
+			margin-bottom: 20px;
+			position: relative;
+		}
+
+		.drop-zone:hover {
+			border-color: rgba(0, 212, 255, 0.45);
+			background: rgba(0, 212, 255, 0.05);
+		}
+
+		.drop-zone input[type="file"] {
+			position: absolute;
+			inset: 0;
+			opacity: 0;
+			cursor: pointer;
+			width: 100%;
+			height: 100%;
+		}
+
+		.drop-icon {
+			font-size: 40px;
+			margin-bottom: 12px;
+		}
+
+		.drop-title {
+			font-size: 15px;
+			font-weight: 600;
+			margin-bottom: 5px;
+			letter-spacing: -0.2px;
+		}
+
+		#file-label {
+			font-size: 12.5px;
+			color: var(--muted);
+			display: block;
+			margin-top: 4px;
+		}
+
+		#file-error {
+			display: none;
+			font-size: 13px;
+			color: #ff6b6b;
+			background: rgba(255, 107, 107, 0.07);
+			border: 1px solid rgba(255, 107, 107, 0.22);
+			border-radius: 9px;
+			padding: 10px 14px;
+			margin-bottom: 16px;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.btn-submit {
+			width: 100%;
+			background: linear-gradient(135deg, var(--accent), var(--primary));
+			color: #fff;
+			font-family: 'Inter', sans-serif;
+			font-size: 15px;
+			font-weight: 600;
+			padding: 14px;
+			border: none;
+			border-radius: 11px;
+			cursor: pointer;
+			transition: all 0.25s;
+			box-shadow: 0 6px 22px rgba(0, 212, 255, 0.22);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			letter-spacing: -0.2px;
+		}
+
+		.btn-submit:hover:not(:disabled) {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 30px rgba(0, 212, 255, 0.38);
+		}
+
+		.btn-submit:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		.btn-spinner {
+			width: 16px;
+			height: 16px;
+			border: 2px solid rgba(255, 255, 255, 0.3);
+			border-top-color: #fff;
+			border-radius: 50%;
+			animation: spin 0.8s linear infinite;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Info sidebar */
+		.info-card {
+			background: var(--card);
+			border: 1px solid var(--border);
+			border-radius: 20px;
+			padding: 26px;
+			animation: fadeUp 0.4s ease 0.1s both;
+		}
+
+		.info-card h3 {
+			font-size: 13px;
+			font-weight: 700;
+			color: var(--muted);
+			text-transform: uppercase;
+			letter-spacing: 0.8px;
+			margin-bottom: 18px;
+		}
+
+		.info-item {
+			display: flex;
+			align-items: flex-start;
+			gap: 12px;
+			padding: 13px 0;
+			border-bottom: 1px solid var(--border);
+		}
+
+		.info-item:last-of-type {
+			border-bottom: none;
+			padding-bottom: 0;
+		}
+
+		.info-icon {
+			width: 36px;
+			height: 36px;
+			border-radius: 9px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 16px;
+			flex-shrink: 0;
+		}
+
+		.i-cyan {
+			background: rgba(0, 212, 255, 0.1);
+		}
+
+		.i-purple {
+			background: rgba(124, 106, 247, 0.14);
+		}
+
+		.i-green {
+			background: rgba(34, 211, 165, 0.1);
+		}
+
+		.i-orange {
+			background: rgba(255, 159, 67, 0.1);
+		}
+
+		.info-text strong {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			margin-bottom: 2px;
+		}
+
+		.info-text span {
+			font-size: 12px;
+			color: var(--muted);
+		}
+
+		.step-list {
+			margin-top: 20px;
+			padding-top: 20px;
+			border-top: 1px solid var(--border);
+		}
+
+		.step-list h4 {
+			font-size: 12px;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.7px;
+			color: var(--muted);
+			margin-bottom: 14px;
+		}
+
+		.step-item {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 10px;
+			font-size: 12.5px;
+			color: var(--muted);
+			line-height: 1.5;
+		}
+
+		.step-num {
+			min-width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: rgba(124, 106, 247, 0.15);
+			color: var(--primary);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 11px;
+			font-weight: 700;
+			flex-shrink: 0;
+		}
+
+		.formats-row {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			margin-top: 20px;
+		}
+
+		.fmt-chip {
+			font-size: 11.5px;
+			font-weight: 600;
+			color: var(--muted);
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid var(--border);
+			border-radius: 50px;
+			padding: 4px 12px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<aside class="sidebar">
+		<div class="sidebar-brand">
+			<div class="brand-icon-small">⚡</div>
+			<div>
+				<div class="brand-name-small">AI Fitness Coach</div>
+				<div style="font-size:11px;color:var(--muted);margin-top:2px;">{{
+					request.session.username|default:'User' }}</div>
+			</div>
+		</div>
+		<div class="nav-section">Navigation</div>
+		<ul class="sidebar-nav">
+			<li><a href="{% url 'UserScreen' %}"><span class="nav-icon">🏠</span> Dashboard</a></li>
+			<li><a href="{% url 'TrainDetection' %}"><span class="nav-icon">🏋️</span> Train Model</a></li>
+			<li><a href="{% url 'Graph' %}"><span class="nav-icon">📊</span> Training Graph</a></li>
+			<li><a href="{% url 'Predict' %}"><span class="nav-icon">🔍</span> Activity Recognition</a></li>
+			<li><a href="{% url 'PredictVideo' %}" class="active"><span class="nav-icon">🎥</span> Video Analysis</a>
+			</li>
+		</ul>
+		<div class="sidebar-footer">
+			<a href="{% url 'Logout' %}"><span>🚪</span> Logout</a>
+		</div>
+	</aside>
+
+	<main class="main">
+		<div class="topbar">
+			<h1 class="page-title">Video <span>Analysis</span></h1>
+			<span class="topbar-badge">🎥 Real-Time Detection</span>
+		</div>
+
+		<div class="content-grid">
+			<div class="upload-card">
+				<h2>Upload Exercise Video</h2>
+				<p class="subtitle">Upload a video of your exercise routine. Our AI model will process each frame and
+					detect fitness activities in real-time.</p>
+
+				<div class="note-box">
+					<span>⚠️</span>
+					<div>A video playback window will open during processing. Press <strong>Q</strong> on your keyboard
+						to stop playback and return results.</div>
+				</div>
+
+				<form name="f1" method="post" action="{% url 'PredictVideoAction' %}" enctype="multipart/form-data"
+					onsubmit="return validate(this)">
+					{% csrf_token %}
+
+					<div id="drop-zone" class="drop-zone" ondragover="handleDragOver(event)"
+						ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+						<input type="file" id="video-upload" name="t1" accept="video/*"
+							onchange="updateFileName(this)" />
+						<div id="drop-icon" class="drop-icon">🎥</div>
+						<div class="drop-title">Drop your video here</div>
+						<span id="file-label">or click to browse — MP4, AVI, MOV</span>
+					</div>
+
+					<div id="file-error">
+						<span></span>
+					</div>
+
+					<button type="submit" id="submit-btn" class="btn-submit">▶ Start Video Analysis</button>
+				</form>
+
+				<div class="formats-row">
+					<span class="fmt-chip">MP4</span>
+					<span class="fmt-chip">AVI</span>
+					<span class="fmt-chip">MOV</span>
+					<span class="fmt-chip">MKV</span>
+					<span class="fmt-chip">WMV</span>
+				</div>
+			</div>
+
+			<div>
+				<div class="info-card">
+					<h3>Processing Details</h3>
+					<div class="info-item">
+						<div class="info-icon i-cyan">🎞️</div>
+						<div class="info-text">
+							<strong>Frame Analysis</strong>
+							<span>Every frame is processed for exercise detection</span>
+						</div>
+					</div>
+					<div class="info-item">
+						<div class="info-icon i-purple">🧠</div>
+						<div class="info-text">
+							<strong>YOLOv8 Model</strong>
+							<span>Real-time object detection architecture</span>
+						</div>
+					</div>
+					<div class="info-item">
+						<div class="info-icon i-green">🏃</div>
+						<div class="info-text">
+							<strong>Live Preview</strong>
+							<span>Watch detection results as they happen</span>
+						</div>
+					</div>
+
+					<div class="step-list">
+						<h4>How to use</h4>
+						<div class="step-item">
+							<span class="step-num">1</span>
+							<span>Upload a clear exercise video from your device</span>
+						</div>
+						<div class="step-item">
+							<span class="step-num">2</span>
+							<span>Click "Start Video Analysis" to begin processing</span>
+						</div>
+						<div class="step-item">
+							<span class="step-num">3</span>
+							<span>A window will open showing real-time detections</span>
+						</div>
+						<div class="step-item">
+							<span class="step-num">4</span>
+							<span>Press <strong>Q</strong> to stop and view your results</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+</body>
+
+</html>

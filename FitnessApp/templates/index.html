@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Personal Fitness Coach | Deep Learning</title>
+  <meta name="description"
+    content="AI Powered Personal Fitness Coach using Deep Learning - Recognize exercises and get personalized fitness recommendations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #7c6af7;
+      --primary-dark: #5a52d5;
+      --accent: #00d4ff;
+      --accent2: #ff6b9d;
+      --bg: #05050f;
+      --bg2: #0d0d20;
+      --card: rgba(255, 255, 255, 0.04);
+      --card-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.07);
+      --border-hover: rgba(124, 106, 247, 0.4);
+      --text: #eeeef5;
+      --text2: #c8c8d8;
+      --muted: #7878a0;
+      --green: #22d3a5;
+      --glow: 0 0 60px rgba(124, 106, 247, 0.2);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(124, 106, 247, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Navbar */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(5, 5, 15, 0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .nav-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .nav-logo-text {
+      background: linear-gradient(90deg, var(--text), var(--text2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--card);
+    }
+
+    .btn-login {
+      color: #fff !important;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+      padding: 8px 20px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 16px rgba(124, 106, 247, 0.3);
+      transition: all 0.25s !important;
+    }
+
+    .btn-login:hover {
+      box-shadow: 0 6px 24px rgba(124, 106, 247, 0.5) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+
+    .hero-inner {
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124, 106, 247, 0.1);
+      border: 1px solid rgba(124, 106, 247, 0.25);
+      border-radius: 50px;
+      padding: 6px 18px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 32px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(1.4);
+      }
+    }
+
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 76px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -3px;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.6s ease 0.1s both;
+    }
+
+    .hero h1 .line1 {
+      display: block;
+      color: var(--text);
+    }
+
+    .hero h1 .line2 {
+      display: block;
+      background: linear-gradient(135deg, var(--primary) 20%, var(--accent) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 44px;
+      line-height: 1.75;
+      font-weight: 400;
+      animation: fadeInUp 0.6s ease 0.2s both;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.6s ease 0.3s both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      padding: 13px 28px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s;
+      box-shadow: 0 8px 28px rgba(124, 106, 247, 0.35);
+      letter-spacing: -0.2px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(124, 106, 247, 0.5);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text2);
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      font-weight: 500;
+      padding: 13px 28px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.14);
+      transform: translateY(-2px);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 48px;
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 0 60px;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-item:last-child {
+      border-right: none;
+    }
+
+    .stat-num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 5px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+
+    /* Features */
+    .features {
+      position: relative;
+      z-index: 1;
+      padding: 100px 48px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 48px;
+      color: var(--text);
+      line-height: 1.15;
+    }
+
+    .section-title span {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124, 106, 247, 0.4), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      background: var(--card-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .icon-purple {
+      background: rgba(124, 106, 247, 0.15);
+    }
+
+    .icon-cyan {
+      background: rgba(0, 212, 255, 0.12);
+    }
+
+    .icon-pink {
+      background: rgba(255, 107, 157, 0.12);
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* How it works */
+    .how-it-works {
+      position: relative;
+      z-index: 1;
+      padding: 80px 48px;
+      background: rgba(255, 255, 255, 0.015);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .how-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      margin-top: 48px;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 16%;
+      right: 16%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.4;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 auto 18px;
+      box-shadow: 0 8px 20px rgba(124, 106, 247, 0.35);
+    }
+
+    .step h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.2px;
+    }
+
+    .step p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 48px;
+      text-align: center;
+    }
+
+    .cta-card {
+      max-width: 680px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, rgba(124, 106, 247, 0.12), rgba(0, 212, 255, 0.06));
+      border: 1px solid rgba(124, 106, 247, 0.2);
+      border-radius: 24px;
+      padding: 64px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at center, rgba(124, 106, 247, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-card h2 {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .cta-card p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 28px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <div class="nav-logo">
+      <div class="nav-logo-icon">⚡</div>
+      <span class="nav-logo-text">AI Fitness Coach</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="{% url 'index' %}">Home</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="{% url 'AdminLogin' %}" style="color:var(--muted);font-size:13px;">Admin</a></li>
+      <li><a href="{% url 'UserLogin' %}" class="btn-login">User Login →</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Powered by YOLOv8 Deep Learning
+      </div>
+      <h1>
+        <span class="line1">Your Personal</span>
+        <span class="line2">AI Fitness Coach</span>
+      </h1>
+      <p class="hero-desc">Intelligent exercise recognition, real-time activity detection, and personalized fitness
+        plans — powered by state-of-the-art deep learning.</p>
+      <div class="hero-cta">
+        <a href="{% url 'UserLogin' %}" class="btn-primary">🚀 User Login</a>
+        <a href="{% url 'Register' %}" class="btn-ghost">✎ Register Free</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num">36+</div>
+      <div class="stat-label">Exercise Classes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">98.4%</div>
+      <div class="stat-label">Model Accuracy</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">YOLOv8</div>
+      <div class="stat-label">AI Architecture</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">Real-Time</div>
+      <div class="stat-label">Video Analysis</div>
+    </div>
+  </div>
+
+  <section class="features" id="features">
+    <div class="section-label">Capabilities</div>
+    <div class="section-title">Everything you need to<br><span>train smarter</span></div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon icon-purple">🏋️</div>
+        <h3>Activity Recognition</h3>
+        <p>Upload an exercise image and get instant, AI-powered identification of the fitness activity being performed
+          with high precision.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-cyan">🎥</div>
+        <h3>Video Analysis</h3>
+        <p>Real-time video processing to detect and track exercises frame-by-frame using advanced computer vision
+          algorithms.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-pink">📋</div>
+        <h3>Personalized Plans</h3>
+        <p>Receive detailed exercise recommendations and fitness guidance tailored specifically to the detected activity
+          and your needs.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="how-inner">
+      <div class="section-label">How It Works</div>
+      <div class="section-title" style="margin-bottom:0">Simple, powerful, <span>intelligent</span></div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h4>Upload Media</h4>
+          <p>Upload an image or video of your exercise routine to get started instantly.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h4>AI Processing</h4>
+          <p>Our YOLOv8 model analyzes your media and detects the fitness activities with 98%+ accuracy.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h4>Get Your Plan</h4>
+          <p>Receive a personalized fitness plan and recommendations based on the recognized activities.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-card">
+      <h2>Ready to transform<br>your fitness journey?</h2>
+      <p>Join our platform and experience the power of AI-driven fitness coaching. Get started in seconds.</p>
+      <a href="{% url 'UserLogin' %}" class="btn-primary" style="font-size:15px;padding:14px 36px;">
+        🚀 Start for Free
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2024 AI Powered Personal Fitness Coach using Deep Learning. All rights reserved.
+  </footer>
+
+</body>
+
+</html>

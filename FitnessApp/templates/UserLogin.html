@@ -1,0 +1,509 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login | AI Fitness Coach</title>
+	<meta name="description" content="Login to your AI Powered Personal Fitness Coach account.">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+		rel="stylesheet">
+
+	<script>
+		function validate(formObj) {
+			if (formObj.t1.value.length == 0) {
+				showError("Please enter your username.");
+				formObj.t1.focus();
+				return false;
+			}
+			if (formObj.t2.value.length == 0) {
+				showError("Please enter your password.");
+				formObj.t2.focus();
+				return false;
+			}
+			const btn = document.getElementById('submit-btn');
+			btn.textContent = 'Signing in...';
+			btn.disabled = true;
+			return true;
+		}
+		function showError(msg) {
+			const el = document.getElementById('inline-error');
+			if (el) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+		}
+	</script>
+
+	<style>
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		:root {
+			--primary: #7c6af7;
+			--primary-dark: #5a52d5;
+			--accent: #00d4ff;
+			--bg: #05050f;
+			--card: rgba(255, 255, 255, 0.04);
+			--border: rgba(255, 255, 255, 0.08);
+			--border-focus: rgba(124, 106, 247, 0.5);
+			--text: #eeeef5;
+			--muted: #7878a0;
+			--error: #ff6b6b;
+			--success: #22d3a5;
+		}
+
+		body {
+			font-family: 'Inter', sans-serif;
+			background: var(--bg);
+			color: var(--text);
+			min-height: 100vh;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			overflow: hidden;
+		}
+
+		/* ── Left Panel ── */
+		.left-panel {
+			position: relative;
+			background: linear-gradient(150deg, rgba(124, 106, 247, 0.18) 0%, rgba(0, 212, 255, 0.06) 100%);
+			border-right: 1px solid var(--border);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 60px;
+			overflow: hidden;
+		}
+
+		.left-panel::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background-image:
+				linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+			background-size: 50px 50px;
+		}
+
+		.left-panel::after {
+			content: '';
+			position: absolute;
+			bottom: -150px;
+			right: -150px;
+			width: 400px;
+			height: 400px;
+			background: radial-gradient(circle, rgba(124, 106, 247, 0.15) 0%, transparent 70%);
+			border-radius: 50%;
+		}
+
+		.brand-logo {
+			position: relative;
+			z-index: 1;
+			text-align: center;
+			margin-bottom: 56px;
+		}
+
+		.brand-icon {
+			width: 80px;
+			height: 80px;
+			background: linear-gradient(135deg, var(--primary), var(--accent));
+			border-radius: 22px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 36px;
+			margin: 0 auto 20px;
+			box-shadow: 0 12px 40px rgba(124, 106, 247, 0.4);
+		}
+
+		.brand-name {
+			font-size: 22px;
+			font-weight: 800;
+			letter-spacing: -0.5px;
+			background: linear-gradient(90deg, var(--text), rgba(238, 238, 245, 0.7));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.brand-tagline {
+			font-size: 13px;
+			color: var(--muted);
+			margin-top: 6px;
+			font-weight: 400;
+		}
+
+		.feature-list {
+			position: relative;
+			z-index: 1;
+			width: 100%;
+			max-width: 360px;
+		}
+
+		.feature-item {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			padding: 16px 20px;
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid rgba(255, 255, 255, 0.06);
+			border-radius: 12px;
+			margin-bottom: 12px;
+			transition: all 0.2s;
+		}
+
+		.feature-item:hover {
+			background: rgba(124, 106, 247, 0.08);
+			border-color: rgba(124, 106, 247, 0.2);
+		}
+
+		.fi-icon {
+			width: 40px;
+			height: 40px;
+			border-radius: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 18px;
+			flex-shrink: 0;
+		}
+
+		.fi-purple {
+			background: rgba(124, 106, 247, 0.15);
+		}
+
+		.fi-cyan {
+			background: rgba(0, 212, 255, 0.12);
+		}
+
+		.fi-green {
+			background: rgba(34, 211, 165, 0.12);
+		}
+
+		.fi-text strong {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			margin-bottom: 2px;
+		}
+
+		.fi-text span {
+			font-size: 12px;
+			color: var(--muted);
+		}
+
+		/* ── Right Panel ── */
+		.right-panel {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 60px;
+			position: relative;
+		}
+
+		.back-link {
+			position: absolute;
+			top: 28px;
+			left: 32px;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			color: var(--muted);
+			text-decoration: none;
+			font-size: 13px;
+			font-weight: 500;
+			padding: 7px 14px;
+			border-radius: 8px;
+			transition: all 0.2s;
+		}
+
+		.back-link:hover {
+			color: var(--text);
+			background: var(--card);
+		}
+
+		.login-form-wrap {
+			width: 100%;
+			max-width: 400px;
+		}
+
+		.form-header {
+			margin-bottom: 36px;
+		}
+
+		.form-header h1 {
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.8px;
+			margin-bottom: 8px;
+		}
+
+		.form-header p {
+			font-size: 14px;
+			color: var(--muted);
+			line-height: 1.5;
+		}
+
+		/* Server messages */
+		.server-msg {
+			padding: 12px 16px;
+			border-radius: 10px;
+			font-size: 13px;
+			font-weight: 500;
+			margin-bottom: 24px;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.server-msg.error {
+			background: rgba(255, 107, 107, 0.08);
+			border: 1px solid rgba(255, 107, 107, 0.25);
+			color: var(--error);
+		}
+
+		.server-msg.success {
+			background: rgba(34, 211, 165, 0.08);
+			border: 1px solid rgba(34, 211, 165, 0.25);
+			color: var(--success);
+		}
+
+		#inline-error {
+			display: none;
+			padding: 11px 14px;
+			border-radius: 9px;
+			font-size: 13px;
+			font-weight: 500;
+			margin-bottom: 18px;
+			background: rgba(255, 107, 107, 0.08);
+			border: 1px solid rgba(255, 107, 107, 0.25);
+			color: var(--error);
+		}
+
+		/* Form */
+		.form-group {
+			margin-bottom: 16px;
+		}
+
+		.form-label {
+			display: block;
+			font-size: 12.5px;
+			font-weight: 600;
+			color: var(--muted);
+			margin-bottom: 8px;
+			letter-spacing: 0.4px;
+			text-transform: uppercase;
+		}
+
+		.input-wrap {
+			position: relative;
+		}
+
+		.form-input {
+			width: 100%;
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			padding: 13px 44px 13px 16px;
+			font-family: 'Inter', sans-serif;
+			font-size: 14.5px;
+			color: var(--text);
+			transition: all 0.25s;
+			outline: none;
+		}
+
+		.form-input::placeholder {
+			color: rgba(120, 120, 160, 0.6);
+		}
+
+		.form-input:focus {
+			border-color: var(--border-focus);
+			background: rgba(124, 106, 247, 0.06);
+			box-shadow: 0 0 0 3px rgba(124, 106, 247, 0.12);
+		}
+
+		.input-icon {
+			position: absolute;
+			right: 14px;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 15px;
+			pointer-events: none;
+			opacity: 0.5;
+		}
+
+		/* Submit */
+		.btn-submit {
+			width: 100%;
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+			color: #fff;
+			font-family: 'Inter', sans-serif;
+			font-size: 15px;
+			font-weight: 600;
+			padding: 14px;
+			border: none;
+			border-radius: 10px;
+			cursor: pointer;
+			margin-top: 8px;
+			transition: all 0.25s;
+			box-shadow: 0 6px 24px rgba(124, 106, 247, 0.35);
+			letter-spacing: -0.2px;
+		}
+
+		.btn-submit:hover:not(:disabled) {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 32px rgba(124, 106, 247, 0.5);
+		}
+
+		.btn-submit:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		.divider {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			margin: 24px 0;
+		}
+
+		.divider::before,
+		.divider::after {
+			content: '';
+			flex: 1;
+			height: 1px;
+			background: var(--border);
+		}
+
+		.divider span {
+			font-size: 12px;
+			color: var(--muted);
+			white-space: nowrap;
+		}
+
+		.form-footer {
+			text-align: center;
+			font-size: 13px;
+			color: var(--muted);
+			margin-top: 24px;
+		}
+
+		.form-footer a {
+			color: var(--primary);
+			text-decoration: none;
+			font-weight: 600;
+		}
+
+		.form-footer a:hover {
+			text-decoration: underline;
+		}
+
+		/* Responsive */
+		@media (max-width: 840px) {
+			body {
+				grid-template-columns: 1fr;
+			}
+
+			.left-panel {
+				display: none;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- Left Panel -->
+	<div class="left-panel">
+		<div class="brand-logo">
+			<div class="brand-icon">⚡</div>
+			<div class="brand-name">AI Fitness Coach</div>
+			<div class="brand-tagline">Powered by YOLOv8 Deep Learning</div>
+		</div>
+		<div class="feature-list">
+			<div class="feature-item">
+				<div class="fi-icon fi-purple">🏋️</div>
+				<div class="fi-text">
+					<strong>Activity Recognition</strong>
+					<span>Detect 36+ exercise types instantly</span>
+				</div>
+			</div>
+			<div class="feature-item">
+				<div class="fi-icon fi-cyan">🎥</div>
+				<div class="fi-text">
+					<strong>Video Analysis</strong>
+					<span>Real-time frame-by-frame detection</span>
+				</div>
+			</div>
+			<div class="feature-item">
+				<div class="fi-icon fi-green">📊</div>
+				<div class="fi-text">
+					<strong>Training Insights</strong>
+					<span>98.4% mAP model performance</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Right Panel -->
+	<div class="right-panel">
+		<a href="{% url 'index' %}" class="back-link">← Back to Home</a>
+
+		<div class="login-form-wrap">
+			<div class="form-header">
+				<h1>Welcome back 👋</h1>
+				<p>Sign in to your user account to access your AI fitness dashboard.</p>
+			</div>
+
+			{% if data %}
+			{% if "Welcome" in data %}
+			<div class="server-msg success">✅ {{ data }}</div>
+			{% else %}
+			<div class="server-msg error">⚠ {{ data }}</div>
+			{% endif %}
+			{% endif %}
+
+			<div id="inline-error"></div>
+
+			<form name="f1" method="post" action="{% url 'UserLoginAction' %}" onsubmit="return validate(this)">
+				{% csrf_token %}
+
+				<div class="form-group">
+					<label class="form-label" for="username-input">Username</label>
+					<div class="input-wrap">
+						<input class="form-input" type="text" id="username-input" name="t1"
+							placeholder="Enter your username" autocomplete="username" />
+						<span class="input-icon">👤</span>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="form-label" for="password-input">Password</label>
+					<div class="input-wrap">
+						<input class="form-input" type="password" id="password-input" name="t2"
+							placeholder="Enter your password" autocomplete="current-password" />
+						<span class="input-icon">🔒</span>
+					</div>
+				</div>
+
+				<button type="submit" id="submit-btn" class="btn-submit">Sign in →</button>
+			</form>
+
+			<div class="form-footer">
+				Don't have an account? <a href="{% url 'Register' %}">Register here</a>
+			</div>
+			<div class="form-footer" style="margin-top:12px;">
+				Are you an admin? <a href="{% url 'AdminLogin' %}">Admin Login →</a>
+			</div>
+		</div>
+	</div>
+
+</body>
+
+</html>
